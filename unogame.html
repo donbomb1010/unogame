@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>UNO Card Game with Friends</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #ff5555;
+            --yellow: #ffaa00;
+            --green: #55ff55;
+            --blue: #55aaff;
+            --black: #333;
+            --card-width: 60px;
+            --card-height: 90px;
+            --card-width-sm: 40px;
+            --card-height-sm: 60px;
+            --hand-offset: -30px;
+            --hand-offset-sm: -20px;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background-color: #0d3b66;
+            color: white;
+            user-select: none;
+        }
+        
+        #auth-container, #lobby {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        #signup-container, #signin-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        #auth-container h2, #lobby h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .form-field label {
+            font-size: 1.1em;
+        }
+        
+        .form-field select {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 2px solid #fff;
+            background-color: #0a2d4d;
+            color: #fff;
+            text-align: center;
+        }
+
+        #auth-container input, #join-game-section input {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 2px solid #fff;
+            background-color: #0a2d4d;
+            color: #fff;
+            text-align: center;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        #auth-container button, #lobby button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7b733;
+            color: #333;
+            font-weight: bold;
+            width: 80%;
+            max-width: 324px;
+        }
+
+        #auth-container a {
+            color: #f7b733;
+            cursor: pointer;
+        }
+        
+        #lobby-greeting {
+            font-size: 1.2em;
+            margin: 15px 0;
+        }
+
+        #join-game-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #game-code-display {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        #game-code {
+            font-size: 1.5em;
+            background: #fff;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+            user-select: text;
+        }
+
+        #user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        #signout-btn {
+            background: #ff5555;
+            color: white;
+            font-size: 0.8em;
+            padding: 5px 10px;
+            width: auto;
+        }
+        
+        #rules-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+        #rules-container {
+            background: #333;
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            color: #fff;
+            border: 2px solid var(--red);
+            text-align: left;
+        }
+        #rules-container h3 {
+            margin-top: 0;
+            color: var(--yellow);
+        }
+        #rules-container pre {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #d4d4d4;
+            position: relative;
+        }
+        #copy-rules-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--blue);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+         #close-rules-btn {
+            display: block;
+            margin: 20px auto 0 auto;
+            background: var(--green);
+        }
+
+
+        .game-container {
+            display: none; /* Initially hidden */
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Player areas */
+        .player-area {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+            gap: 15px;
+        }
+        .player-area.player-area-bottom { bottom: 0; left: 0; right: 0; min-height: 120px; }
+        .player-area.opponent-area-top { top: 0; left: 120px; right: 120px; min-height: 100px; flex-wrap: wrap; }
+        .player-area.opponent-area-left { left: 0; top: 120px; bottom: 120px; min-width: 100px; flex-direction: column; flex-wrap: wrap; }
+        .player-area.opponent-area-right { right: 0; top: 120px; bottom: 120px; min-width: 100px; flex-direction: column; flex-wrap: wrap; }
+        
+        .opponent-display {
+            position: relative;
+        }
+
+        .player-info {
+            position: absolute;
+            font-size: 12px;
+            background-color: rgba(0,0,0,0.5);
+            padding: 2px 8px;
+            border-radius: 5px;
+            max-width: 150px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            z-index: 10;
+        }
+        
+        .player-area-bottom .player-info { bottom: 5px; left: 50%; transform: translateX(-50%); }
+        .opponent-area-top .player-info { top: 5px; left: 50%; transform: translateX(-50%);}
+        .opponent-area-left .player-info { left: 5px; top: 50%; transform: translateY(-50%) rotate(90deg); transform-origin: left center; }
+        .opponent-area-right .player-info { right: 5px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: right center; }
+
+        .hand { display: flex; justify-content: center; perspective: 1000px; }
+        .opponent-area-left .hand, .opponent-area-right .hand { flex-direction: column; }
+        
+        .card, .card-back {
+            border-radius: 8px; border: 2px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center;
+            font-weight: bold; position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        /* Main Player Cards */
+        .player-area-bottom .card { width: var(--card-width); height: var(--card-height); font-size: 24px; margin-left: var(--hand-offset); }
+        .player-area-bottom .card:first-child { margin-left: 0; }
+        .player-area-bottom .card:hover { transform: translateY(-20px) scale(1.1); z-index: 100; }
+        
+        /* Opponent Cards */
+        .opponent-area-top .card-back { width: var(--card-width-sm); height: var(--card-height-sm); margin-left: var(--hand-offset-sm); }
+        .opponent-area-left .card-back, .opponent-area-right .card-back { width: var(--card-height-sm); height: var(--card-width-sm); margin-top: var(--hand-offset-sm); }
+
+        .card-inner-symbol {
+            width: 40px; height: 60px; background: white; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            color: black; transform: rotate(-20deg);
+        }
+        .card .value { position: absolute; }
+        .card .top-left { top: 5px; left: 5px; font-size: 14px; }
+        .card .bottom-right { bottom: 5px; right: 5px; font-size: 14px; transform: rotate(180deg); }
+
+        .card[data-color="red"] { background-color: var(--red); }
+        .card[data-color="yellow"] { background-color: var(--yellow); }
+        .card[data-color="green"] { background-color: var(--green); }
+        .card[data-color="blue"] { background-color: var(--blue); }
+        .card[data-color^="wild"] { background: linear-gradient(45deg, var(--red) 25%, var(--blue) 25%, var(--blue) 50%, var(--green) 50%, var(--green) 75%, var(--yellow) 75%); }
+
+        .card-back {
+            background-color: var(--black);
+            background-image: radial-gradient(circle, #ff5555, #ff5555 20%, transparent 20%);
+            background-size: 20px 20px;
+        }
+        .card-back .logo { color: white; font-size: 16px; transform: rotate(-15deg); }
+        .opponent-area-left .card-back .logo, .opponent-area-right .card-back .logo { font-size: 12px; }
+
+        .game-table {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            display: flex; align-items: center; gap: 20px;
+        }
+        #discard-pile .card { cursor: default; width: var(--card-width); height: var(--card-height); font-size: 24px;}
+        #discard-pile .card:hover { transform: none; }
+        #deck-pile { position: relative; }
+        #deck-pile-count {
+            position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 10px; font-size: 12px;
+        }
+
+        #game-message {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8); color: white; padding: 20px 40px;
+            border-radius: 15px; font-size: 2em; text-align: center;
+            z-index: 1000; display: none; flex-direction: column;
+            gap: 15px; animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        #color-picker { display: none; gap: 10px; }
+        .color-choice { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 3px solid white; }
+        
+        #uno-button {
+            position: absolute; bottom: 130px; right: 15px;
+            padding: 15px; background-color: var(--red); border-radius: 50%;
+            font-size: 20px; font-weight: bold; cursor: pointer;
+            border: 3px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+        }
+        #uno-button:active { transform: scale(0.9); }
+
+        .turn-indicator {
+            padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold;
+            position: absolute; transition: all 0.3s ease;
+            background-color: var(--green); color: var(--black);
+            z-index: 10;
+        }
+        .player-area-bottom .turn-indicator { bottom: 30px; }
+        .opponent-display .turn-indicator {
+            background-color: var(--yellow);
+        }
+        .opponent-area-top .turn-indicator { top: 100%; }
+        .opponent-area-left .turn-indicator { left: 100%;}
+        .opponent-area-right .turn-indicator { right: 100%; }
+
+        .card.playable { box-shadow: 0 0 20px 5px #fff; }
+
+        .action-button {
+            padding: 10px 20px; border: none; border-radius: 10px;
+            background-color: #f7b733; color: var(--black); font-family: 'Poppins', sans-serif;
+            font-weight: bold; font-size: 1em; cursor: pointer;
+        }
+        #end-game-buttons { display: flex; gap: 10px; }
+    </style>
+</head>
+<body>
+    <div id="auth-container">
+        <div id="signup-container">
+            <h2>Create Account</h2>
+            <input type="email" id="signup-email" placeholder="Email" autocomplete="email">
+            <input type="password" id="signup-password" placeholder="Password" autocomplete="new-password">
+            <input type="text" id="signup-nickname" placeholder="Nickname" autocomplete="nickname">
+            <button id="signup-btn">Sign Up</button>
+            <p>Already have an account? <a href="#" id="show-signin-link">Sign In</a></p>
+        </div>
+        <div id="signin-container" style="display:none;">
+            <h2>Sign In</h2>
+            <input type="email" id="signin-email" placeholder="Email" autocomplete="email">
+            <input type="password" id="signin-password" placeholder="Password" autocomplete="current-password">
+            <button id="signin-btn">Sign In</button>
+            <p>Don't have an account? <a href="#" id="show-signup-link">Sign Up</a></p>
+        </div>
+    </div>
+
+    <div id="lobby" style="display:none;">
+        <div id="user-info">
+            <span id="user-email"></span>
+            <button id="signout-btn">Sign Out</button>
+        </div>
+        <h2>UNO with Friends</h2>
+        <p id="lobby-greeting">Welcome, <strong id="lobby-nickname-display"></strong>!</p>
+        
+        <div id="create-game-setup">
+            <div class="form-field">
+                <label for="player-count">Number of Players:</label>
+                <select id="player-count">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+            <button id="create-game-btn">Create Game</button>
+        </div>
+
+        <div id="join-game-section">
+            <input type="text" id="game-id-input" placeholder="Enter Game Code">
+            <button id="join-game-btn">Join Game</button>
+        </div>
+        <div id="game-code-display" style="display:none;">
+            <p>Share this code with friends:</p>
+            <strong id="game-code"></strong>
+            <p id="lobby-status">Waiting for players...</p>
+        </div>
+        <p id="error-message" style="color: var(--red);"></p>
+    </div>
+
+    <div class="game-container" id="game-container">
+        <div id="player-area-bottom" class="player-area player-area-bottom">
+            <div id="player-hand" class="hand"></div>
+            <div class="player-info" id="player-info-bottom"></div>
+            <div class="turn-indicator" style="display: none;">Your Turn</div>
+        </div>
+        <div id="opponent-area-top" class="player-area opponent-area-top"></div>
+        <div id="opponent-area-left" class="player-area opponent-area-left"></div>
+        <div id="opponent-area-right" class="player-area opponent-area-right"></div>
+        
+        <div class="game-table">
+            <div id="deck-pile" class="deck"><div class="card-back"><div class="logo">UNO</div></div><div id="deck-pile-count"></div></div>
+            <div id="discard-pile" class="deck"></div>
+        </div>
+        <div id="uno-button" style="display: none;">UNO!</div>
+    </div>
+    
+    <div id="game-message">
+        <div id="message-text"></div>
+        <div id="color-picker">
+            <div class="color-choice" style="background-color: var(--red);" data-color="red"></div>
+            <div class="color-choice" style="background-color: var(--yellow);" data-color="yellow"></div>
+            <div class="color-choice" style="background-color: var(--green);" data-color="green"></div>
+            <div class="color-choice" style="background-color: var(--blue);" data-color="blue"></div>
+        </div>
+        <div id="end-game-buttons" style="display: none;">
+             <button id="play-again-button" class="action-button">Play Again</button>
+             <button id="lobby-button" class="action-button">Back to Lobby</button>
+        </div>
+    </div>
+    
+    <div id="rules-overlay">
+        <div id="rules-container">
+            <h3>Permission Error Detected</h3>
+            <p>To play, your Firebase project needs the correct security rules. Please copy the rules below and paste them into your Firestore Database 'Rules' tab.</p>
+            <pre id="rules-text"><code>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /uno_games/{gameId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+                    (resource.data.playerIds.hasAny([request.auth.uid]) ||
+                     request.resource.data.playerIds.size() == resource.data.playerIds.size() + 1);
+    }
+  }
+}</code><button id="copy-rules-btn">Copy Rules</button></pre>
+            <button id="close-rules-btn" class="action-button">I've updated the rules</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, runTransaction } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+        // --- Firebase, Game State, DOM Elements ---
+        let db, auth, userId, gameId, gameUnsubscribe = null, userNickname = '';
+        const lobbyDiv = document.getElementById('lobby');
+        const gameContainer = document.getElementById('game-container');
+        const errorMessage = document.getElementById('error-message');
+        const lobbyNicknameDisplay = document.getElementById('lobby-nickname-display');
+
+
+        // --- Firebase Initialization ---
+        async function initializeFirebase() {
+             try {
+                const firebaseConfig = {
+                    apiKey: "AIzaSyD51lT7EAhDOIXuDKHqaVeaWx4xQ3Ld4dA",
+                    authDomain: "unogame-73762.firebaseapp.com",
+                    projectId: "unogame-73762",
+                    storageBucket: "unogame-73762.firebasestorage.app",
+                    messagingSenderId: "779150441259",
+                    appId: "1:779150441259:web:d4dbb2825d1fb038caa36e",
+                    measurementId: "G-77JXGFJXC1"
+                };
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                onAuthStateChanged(auth, async (user) => {
+                    const authContainer = document.getElementById('auth-container');
+                    if (user) {
+                        userId = user.uid;
+                        const userDocRef = doc(db, 'users', userId);
+                        const userDoc = await getDoc(userDocRef);
+                        if (userDoc.exists()) {
+                            userNickname = userDoc.data().nickname;
+                            lobbyNicknameDisplay.textContent = userNickname;
+                        } else {
+                            userNickname = `Player${userId.substring(0,5)}`;
+                            lobbyNicknameDisplay.textContent = userNickname;
+                        }
+                        authContainer.style.display = 'none'; lobbyDiv.style.display = 'flex';
+                        document.getElementById('user-email').textContent = user.email;
+                    } else {
+                        userId = null;
+                        userNickname = '';
+                        authContainer.style.display = 'block'; lobbyDiv.style.display = 'none'; gameContainer.style.display = 'none';
+                        if (gameUnsubscribe) gameUnsubscribe();
+                    }
+                });
+            } catch (error) { console.error("Firebase Init Failed:", error); }
+        }
+
+        // --- Auth Functions ---
+        const handleSignUp = async () => {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const nickname = document.getElementById('signup-nickname').value.trim();
+            if (!nickname) { errorMessage.textContent = "Please enter a nickname."; return; }
+            if (nickname.length > 15) { errorMessage.textContent = "Nickname must be 15 characters or less."; return; }
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                await setDoc(doc(db, 'users', user.uid), { nickname: nickname, email: user.email });
+            } catch (error) {
+                handleFirebaseError(error);
+                errorMessage.textContent = error.message;
+            }
+        };
+
+        const handleSignIn = async () => {
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) { errorMessage.textContent = error.message; }
+        };
+
+        const handleSignOut = async () => {
+            try {
+                await signOut(auth);
+            } catch (error) { errorMessage.textContent = error.message; }
+        };
+
+        // --- Lobby Functions ---
+        async function createGame() {
+            if (!userId) return;
+            const nickname = userNickname || `Player${userId.substring(0,5)}`;
+            const maxPlayers = parseInt(document.getElementById('player-count').value, 10);
+
+            const gameData = {
+                players: { [userId]: { hand: [], unoCalled: false, nickname: nickname } },
+                playerIds: [userId], maxPlayers, deck: [], discardPile: [], currentPlayerIndex: 0,
+                gameDirection: 1, isGameOver: false, winner: null, chosenColor: null,
+                status: 'waiting', log: [`Game for ${maxPlayers} players created.`]
+            };
+
+            try {
+                const gameCollection = collection(db, 'uno_games');
+                let newGameId, gameRef, docExists = true;
+                while(docExists) {
+                    newGameId = Math.floor(100000 + Math.random() * 900000).toString();
+                    gameRef = doc(gameCollection, newGameId);
+                    docExists = (await getDoc(gameRef)).exists();
+                }
+
+                await setDoc(gameRef, gameData);
+                gameId = newGameId;
+                document.getElementById('game-code').textContent = gameId;
+                document.getElementById('game-code-display').style.display = 'block';
+                document.getElementById('create-game-setup').style.display = 'none';
+                document.getElementById('join-game-section').style.display = 'none';
+                listenToGame(gameId);
+            } catch (error) {
+                 handleFirebaseError(error);
+                 console.error("Create Game Error:", error);
+            }
+        }
+        
+        async function joinGame() {
+            if (!userId) return;
+            const inputGameId = document.getElementById('game-id-input').value.trim();
+            const nickname = userNickname || `Player${userId.substring(0,5)}`;
+            const gameRef = doc(db, 'uno_games', inputGameId);
+            
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const gameDoc = await transaction.get(gameRef);
+                    if (!gameDoc.exists()) throw new Error("Game not found.");
+                    
+                    const gameData = gameDoc.data();
+                    if (gameData.playerIds.length >= gameData.maxPlayers) throw new Error("Game is full.");
+                    if (gameData.playerIds.includes(userId)) return;
+
+                    const newPlayerIds = [...gameData.playerIds, userId];
+                    let updates = {
+                        [`players.${userId}`]: { hand: [], unoCalled: false, nickname: nickname },
+                        playerIds: newPlayerIds
+                    };
+
+                    if (newPlayerIds.length === gameData.maxPlayers) {
+                        const newRoundUpdates = setupNewRound(gameData);
+                        
+                        // IMPORTANT FIX: Ensure the new player's data structure exists before dealing
+                        const allPlayersData = { ...gameData.players, ...updates.players };
+                        newRoundUpdates.players = allPlayersData;
+                        
+                        dealCards(newRoundUpdates, newPlayerIds);
+
+                        // Combine all updates
+                        updates = { ...updates, ...newRoundUpdates };
+                        delete updates[`players.${userId}`]; // No longer needed as it's inside newRoundUpdates.players
+                    }
+                    transaction.update(gameRef, updates);
+                });
+                gameId = inputGameId;
+                listenToGame(gameId);
+            } catch (error) {
+                handleFirebaseError(error);
+                errorMessage.textContent = error.message;
+                showMessage(`Error: ${error.message}`);
+                console.error("Join Game Error:", error); 
+            }
+        }
+        
+        // --- Realtime Listener ---
+        function listenToGame(id) {
+            if (gameUnsubscribe) gameUnsubscribe();
+            const gameRef = doc(db, 'uno_games', id);
+            gameUnsubscribe = onSnapshot(gameRef, (doc) => {
+                const gameData = doc.data();
+                if (gameData && gameData.playerIds.includes(userId)) {
+                    if (gameData.status === 'waiting') {
+                        document.getElementById('lobby-status').textContent = `${gameData.playerIds.length} / ${gameData.maxPlayers} players have joined.`;
+                    } else if (gameData.status === 'playing' || gameData.status === 'finished') {
+                        lobbyDiv.style.display = 'none';
+                        gameContainer.style.display = 'block';
+                        renderGame(gameData);
+                    }
+                }
+            });
+        }
+        
+        // --- Rendering ---
+        function renderGame(gameData) {
+            const me = gameData.players[userId];
+            if (!me) return;
+            
+            const playerHandDiv = document.getElementById('player-hand');
+            playerHandDiv.innerHTML = '';
+            me.hand.sort((a,b) => (a.color > b.color) ? 1 : ((b.color > a.color) ? -1 : 0));
+            me.hand.forEach(card => {
+                const cardDiv = renderCard(card);
+                cardDiv.addEventListener('click', () => playerPlayCard(card));
+                playerHandDiv.appendChild(cardDiv);
+            });
+            document.getElementById('player-info-bottom').textContent = `You: ${me.nickname}`;
+
+            const opponentAreaTop = document.getElementById('opponent-area-top');
+            const opponentAreaLeft = document.getElementById('opponent-area-left');
+            const opponentAreaRight = document.getElementById('opponent-area-right');
+            opponentAreaTop.innerHTML = '';
+            opponentAreaLeft.innerHTML = '';
+            opponentAreaRight.innerHTML = '';
+            
+            const opponentContainers = [opponentAreaTop, opponentAreaLeft, opponentAreaRight];
+            const opponentIds = gameData.playerIds.filter(id => id !== userId);
+            
+            const renderOpponent = (oppId, container) => {
+                const opponent = gameData.players[oppId];
+                const display = document.createElement('div');
+                display.className = 'opponent-display';
+                display.dataset.id = oppId;
+                
+                const info = document.createElement('div');
+                info.className = 'player-info';
+                info.textContent = opponent.nickname;
+
+                const hand = document.createElement('div');
+                hand.className = 'hand';
+                opponent.hand.forEach(() => {
+                    const cardBack = document.createElement('div');
+                    cardBack.className = 'card-back';
+                    cardBack.innerHTML = `<div class="logo">UNO</div>`;
+                    hand.appendChild(cardBack);
+                });
+                
+                const turnIndicator = document.createElement('div');
+                turnIndicator.className = 'turn-indicator';
+                turnIndicator.textContent = "Turn";
+                turnIndicator.style.display = 'none';
+
+                display.append(info, hand, turnIndicator);
+                container.appendChild(display);
+            };
+            
+            opponentIds.forEach((id, index) => {
+                renderOpponent(id, opponentContainers[index % 3]);
+            });
+
+
+            const discardPileDiv = document.getElementById('discard-pile');
+            discardPileDiv.innerHTML = '';
+            if (gameData.discardPile.length > 0) {
+                const topCard = gameData.discardPile[gameData.discardPile.length - 1];
+                discardPileDiv.appendChild(renderCard(topCard, gameData.chosenColor));
+            }
+            document.getElementById('deck-pile-count').textContent = gameData.deck.length;
+
+            const currentPlayerId = gameData.playerIds[gameData.currentPlayerIndex];
+            document.querySelectorAll('.turn-indicator').forEach(el => el.style.display = 'none');
+            
+            if (!gameData.isGameOver) {
+                 if (currentPlayerId === userId) {
+                     document.querySelector('#player-area-bottom .turn-indicator').style.display = 'block';
+                 } else {
+                     const opponentDisplay = document.querySelector(`.opponent-display[data-id="${currentPlayerId}"]`);
+                     if (opponentDisplay) {
+                         opponentDisplay.querySelector('.turn-indicator').style.display = 'block';
+                     }
+                 }
+            }
+            
+            if (currentPlayerId === userId) updatePlayableCards(me.hand, gameData);
+            updateUnoButton(me, currentPlayerId === userId);
+            if (gameData.isGameOver) endGame(gameData);
+        }
+        
+        function renderCard(card, chosenColor) {
+             const cardDiv = document.createElement('div');
+             cardDiv.className = 'card';
+             if(card.color === 'wild' && chosenColor) {
+                 cardDiv.dataset.color = `wild-${chosenColor}`;
+                 cardDiv.style.backgroundColor = `var(--${chosenColor})`;
+             } else { cardDiv.dataset.color = card.color; }
+             const symbol = getSymbol(card.value);
+             cardDiv.innerHTML = card.color.startsWith('wild') ? `<div class="card-inner-symbol">${symbol}</div>` : `<span class="value top-left">${symbol}</span><div class="card-inner-symbol">${symbol}</div><span class="value bottom-right">${symbol}</span>`;
+             return cardDiv;
+        }
+
+        // --- Game Actions ---
+        async function playerPlayCard(card) {
+            const gameRef = doc(db, 'uno_games', gameId);
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const gameDoc = await transaction.get(gameRef);
+                    let gameData = gameDoc.data();
+                    if (gameData.playerIds[gameData.currentPlayerIndex] !== userId || gameData.isGameOver || !isPlayable(card, gameData)) return;
+
+                    gameData.playerIds.forEach(pId => {
+                        if(pId !== userId && gameData.players[pId].hand.length === 1 && !gameData.players[pId].unoCalled) {
+                           gameData = applyPenalty(gameData, pId);
+                        }
+                    });
+
+                    const cardIndex = gameData.players[userId].hand.findIndex(c => c.color === card.color && c.value === card.value);
+                    const newHand = [...gameData.players[userId].hand];
+                    if (cardIndex > -1) newHand.splice(cardIndex, 1);
+                    
+                    let updates = {
+                        [`players.${userId}.hand`]: newHand, [`players.${userId}.unoCalled`]: false,
+                        discardPile: [...gameData.discardPile, card], chosenColor: null
+                    };
+
+                    if (newHand.length === 0) {
+                        updates.isGameOver = true; updates.winner = userId;
+                        transaction.update(gameRef, updates); return;
+                    }
+
+                    const effectResult = handleCardEffect(gameData, card);
+                    updates = {...updates, ...effectResult.updates};
+                    if (card.color.startsWith('wild')) { updates.chosenColor = await getWildColor(); }
+                    updates.currentPlayerIndex = effectResult.nextPlayerIndex;
+                    transaction.update(gameRef, updates);
+                });
+            } catch(e) { 
+                handleFirebaseError(e);
+                showMessage(`Error: ${e.message}`);
+                console.error("Play Card Error", e);
+            }
+        }
+        
+        async function playerDrawCard() {
+             const gameRef = doc(db, 'uno_games', gameId);
+             try {
+                await runTransaction(db, async (transaction) => {
+                    let gameData = (await transaction.get(gameRef)).data();
+                    if(gameData.playerIds[gameData.currentPlayerIndex] !== userId || gameData.isGameOver) return;
+                    
+                    if (gameData.deck.length === 0) gameData = reshuffleDeck(gameData);
+                    
+                    const newDeck = [...gameData.deck];
+                    const newHand = [...gameData.players[userId].hand, newDeck.pop()];
+                    
+                    const numPlayers = gameData.playerIds.length;
+                    const nextPlayerIndex = (gameData.currentPlayerIndex + gameData.gameDirection + numPlayers) % numPlayers;
+
+                    transaction.update(gameRef, {
+                        deck: newDeck, 
+                        [`players.${userId}.hand`]: newHand,
+                        currentPlayerIndex: nextPlayerIndex
+                    });
+                });
+             } catch(e) {
+                handleFirebaseError(e);
+                showMessage(`Error: ${e.message}`);
+                console.error("Draw Card Error", e);
+             }
+        }
+        
+        // --- Helper & Game Flow Functions ---
+        function handleFirebaseError(error) {
+            if (error.code === 'permission-denied' || error.message.includes('permission-denied') || error.message.includes('insufficient permissions')) {
+                document.getElementById('rules-overlay').style.display = 'flex';
+            }
+        }
+
+        function createDeck() { let d=[]; const suits = ['red', 'yellow', 'green', 'blue']; const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'skip', 'reverse', 'draw2']; for(let c of suits)for(let v of values){d.push({color:c,value:v});if(v!=='0')d.push({color:c,value:v})}for(let i=0;i<4;i++){d.push({color:'wild',value:'wild'});d.push({color:'wild',value:'wild4'})}return d; }
+        function shuffleDeck(deck) { for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; } }
+        function getSymbol(value) { switch(value) { case 'skip': return '🚫'; case 'reverse': return '🔄'; case 'draw2': return '+2'; case 'wild': return '🎨'; case 'wild4': return '+4'; default: return value; } }
+
+        function setupNewRound(gameData) {
+            const newDeck = createDeck(); shuffleDeck(newDeck);
+            let firstCard;
+            do { firstCard = newDeck.pop(); } while (firstCard.color.startsWith('wild'));
+            return { status: 'playing', deck: newDeck, discardPile: [firstCard], currentPlayerIndex: 0, gameDirection: 1, isGameOver: false, winner: null, chosenColor: null };
+        }
+        
+        function dealCards(updates, playerIds) {
+            playerIds.forEach(pId => {
+                updates.players[pId] = {...updates.players[pId], hand: []};
+                for(let i=0; i<7; i++) {
+                    if(updates.deck.length === 0) break;
+                    updates.players[pId].hand.push(updates.deck.pop());
+                }
+            });
+        }
+        
+        function handleCardEffect(gameData, card) {
+            let updates = {};
+            let nextPlayerIndex = gameData.currentPlayerIndex;
+            const numPlayers = gameData.playerIds.length;
+            let direction = gameData.gameDirection;
+
+            if (card.value === 'reverse') {
+                direction *= -1;
+                if (numPlayers > 2) {
+                    updates.gameDirection = direction;
+                } else {
+                    // In a 2-player game, reverse acts like a skip
+                    nextPlayerIndex = (nextPlayerIndex + direction + numPlayers) % numPlayers;
+                }
+            }
+
+            let skipCount = 0;
+            if (card.value === 'skip') {
+                skipCount = 1;
+            }
+            
+            if (card.value === 'draw2' || card.value === 'wild4') {
+                skipCount = 1;
+                const affectedPlayerIndex = (nextPlayerIndex + direction + numPlayers) % numPlayers;
+                const affectedPlayerId = gameData.playerIds[affectedPlayerIndex];
+                const cardsToDraw = card.value === 'draw2' ? 2 : 4;
+                if (gameData.deck.length < cardsToDraw) gameData = reshuffleDeck(gameData);
+                const newDeck = [...gameData.deck];
+                const drawn = newDeck.splice(newDeck.length - cardsToDraw, cardsToDraw);
+                updates[`players.${affectedPlayerId}.hand`] = [...gameData.players[affectedPlayerId].hand, ...drawn];
+                updates.deck = newDeck;
+            }
+            
+            nextPlayerIndex = (nextPlayerIndex + direction * (1 + skipCount) + numPlayers) % numPlayers;
+            return { updates, nextPlayerIndex };
+        }
+
+        function getWildColor() {
+            return new Promise(resolve => {
+                showMessage("Choose a color:", 0);
+                document.getElementById('color-picker').style.display = 'flex';
+                document.querySelectorAll('.color-choice').forEach(choice => {
+                    const selectColor = () => {
+                        document.getElementById('game-message').style.display = 'none';
+                        resolve(choice.dataset.color);
+                    };
+                    choice.addEventListener('click', selectColor, { once: true });
+                });
+            });
+        }
+        
+         function applyPenalty(gameData, playerId) {
+            const message = `${gameData.players[playerId].nickname} forgot to call UNO!`;
+            if (gameData.deck.length < 2) gameData = reshuffleDeck(gameData);
+            const newDeck = [...gameData.deck];
+            const drawn = [newDeck.pop(), newDeck.pop()];
+            gameData.players[playerId].hand.push(...drawn);
+            gameData.deck = newDeck;
+            gameData.log.push(message);
+            return gameData;
+         }
+
+         function isPlayable(card, gameData) {
+            const topCard = gameData.discardPile[gameData.discardPile.length - 1];
+            const chosenColor = gameData.chosenColor;
+            if (card.color.startsWith('wild')) return true;
+            if (chosenColor) return card.color === chosenColor;
+            return card.color === topCard.color || card.value === topCard.value;
+         }
+
+         function reshuffleDeck(gameData) {
+            const topCard = gameData.discardPile.pop();
+            const newDeck = [...gameData.discardPile];
+            shuffleDeck(newDeck);
+            gameData.deck = newDeck;
+            gameData.discardPile = [topCard];
+            return gameData;
+         }
+
+         function updatePlayableCards(myHand, gameData) {
+            document.querySelectorAll('#player-hand .card').forEach((cardDiv, index) => {
+                if(myHand[index]){
+                    const cardData = myHand[index];
+                    if (isPlayable(cardData, gameData)) {
+                        cardDiv.classList.add('playable');
+                    } else {
+                        cardDiv.classList.remove('playable');
+                    }
+                }
+            });
+         }
+
+         function updateUnoButton(me, isMyTurn) {
+            const unoButton = document.getElementById('uno-button');
+            unoButton.style.display = (me.hand.length === 2 && isMyTurn) ? 'block' : 'none';
+            unoButton.style.backgroundColor = me.unoCalled ? 'var(--green)' : 'var(--red)';
+         }
+
+         function showMessage(text, duration = 1500) {
+            const gameMessage = document.getElementById('game-message');
+            const messageText = document.getElementById('message-text');
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'OK';
+            closeBtn.className = 'action-button';
+            closeBtn.onclick = () => gameMessage.style.display = 'none';
+
+            messageText.innerHTML = '';
+            messageText.appendChild(document.createTextNode(text));
+            
+            if (duration === 0) { // Keep open until closed
+                 // check if close button already exists
+                if (!messageText.nextElementSibling || messageText.nextElementSibling.tagName !== 'BUTTON') {
+                    messageText.after(closeBtn);
+                }
+            }
+
+            gameMessage.style.display = 'flex';
+            document.getElementById('color-picker').style.display = 'none';
+            document.getElementById('end-game-buttons').style.display = 'none';
+
+            if (duration > 0) {
+                setTimeout(() => { gameMessage.style.display = 'none'; }, duration);
+            }
+         }
+
+         function endGame(gameData) {
+            const winnerId = gameData.winner;
+            const message = winnerId === userId ? '🎉 You Win! 🎉' : `😢 ${gameData.players[winnerId].nickname} Wins 😢`;
+            showMessage(message, 0);
+            const gameMessage = document.getElementById('game-message');
+            const endGameButtons = document.getElementById('end-game-buttons');
+            gameMessage.appendChild(endGameButtons);
+            
+            endGameButtons.style.display = 'flex';
+            const playAgainButton = document.getElementById('play-again-button');
+            const amIHost = gameData.playerIds[0] === userId;
+            if (amIHost) {
+                playAgainButton.textContent = 'Play Again';
+                playAgainButton.disabled = false;
+            } else {
+                playAgainButton.textContent = 'Waiting for Host';
+                playAgainButton.disabled = true;
+            }
+         }
+
+        async function restartGame() {
+            const gameRef = doc(db, 'uno_games', gameId);
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const gameDoc = await transaction.get(gameRef);
+                    if (!gameDoc.exists()) throw "Game not found";
+                    const gameData = gameDoc.data();
+                    const updates = setupNewRound(gameData);
+                    updates.players = gameData.players;
+                    dealCards(updates, gameData.playerIds);
+                    transaction.update(gameRef, updates);
+                });
+            } catch (e) { 
+                handleFirebaseError(e);
+                showMessage(`Error: ${e.message}`);
+                console.error("Restart failed:", e);
+            }
+        }
+
+        // --- Event Listeners ---
+        window.onload = initializeFirebase;
+        document.getElementById('signup-btn').addEventListener('click', handleSignUp);
+        document.getElementById('signin-btn').addEventListener('click', handleSignIn);
+        document.getElementById('signout-btn').addEventListener('click', handleSignOut);
+        document.getElementById('show-signin-link').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('signup-container').style.display = 'none'; document.getElementById('signin-container').style.display = 'block'; errorMessage.textContent = ''; });
+        document.getElementById('show-signup-link').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('signin-container').style.display = 'none'; document.getElementById('signup-container').style.display = 'block'; errorMessage.textContent = ''; });
+        document.getElementById('create-game-btn').addEventListener('click', createGame);
+        document.getElementById('join-game-btn').addEventListener('click', joinGame);
+        document.getElementById('deck-pile').addEventListener('click', playerDrawCard);
+        document.getElementById('lobby-button').addEventListener('click', () => window.location.reload());
+        document.getElementById('play-again-button').addEventListener('click', restartGame);
+        document.getElementById('uno-button').addEventListener('click', () => {
+            const gameRef = doc(db, 'uno_games', gameId);
+            updateDoc(gameRef, {[`players.${userId}.unoCalled`]: true});
+            showMessage("UNO!", 1000);
+        });
+        document.getElementById('close-rules-btn').addEventListener('click', () => {
+            document.getElementById('rules-overlay').style.display = 'none';
+        });
+        document.getElementById('copy-rules-btn').addEventListener('click', () => {
+            const rulesText = document.querySelector('#rules-text code').innerText;
+            navigator.clipboard.writeText(rulesText).then(() => {
+                const copyBtn = document.getElementById('copy-rules-btn');
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => { copyBtn.textContent = 'Copy Rules'; }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
+
