@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>UNO Card Game with Friends</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <style>
         :root {
             --red: #ff5555;
@@ -18,7 +19,39 @@
             --card-height-sm: 60px;
             --hand-offset: -30px;
             --hand-offset-sm: -20px;
+            --bg-color: #0d3b66;
+            --text-color: white;
+            --primary-accent: #f7b733;
+            --primary-accent-text: #333;
+            --font-main: 'Poppins', sans-serif;
         }
+
+        body.theme-dark {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --black: #2a2a2a;
+        }
+        
+        body.theme-retro {
+            --font-main: 'Press Start 2P', cursive;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+            --green: #22c55e;
+            --blue: #3b82f6;
+            --black: #1f2937;
+            --bg-color: #4338ca;
+            --primary-accent: #fde047;
+            --primary-accent-text: #1e293b;
+        }
+        body.theme-retro button, body.theme-retro select, body.theme-retro input {
+            border-radius: 0 !important;
+            border: 2px solid var(--black) !important;
+            box-shadow: 2px 2px 0px var(--black);
+        }
+        body.theme-retro .card, body.theme-retro .card-back {
+            border-radius: 4px !important;
+        }
+
 
         body, html {
             margin: 0;
@@ -26,10 +59,11 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: 'Poppins', sans-serif;
-            background-color: #0d3b66;
-            color: white;
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             user-select: none;
+            transition: background-color 0.3s;
         }
         
         #auth-container, #lobby {
@@ -62,6 +96,7 @@
             align-items: center;
             gap: 10px;
             margin-bottom: 10px;
+            width: 100%;
         }
         
         .form-field label {
@@ -72,40 +107,59 @@
             padding: 10px;
             font-size: 1em;
             border-radius: 5px;
-            border: 2px solid #fff;
+            border: 2px solid var(--text-color);
             background-color: #0a2d4d;
-            color: #fff;
+            color: var(--text-color);
             text-align: center;
+            font-family: var(--font-main);
+            width: 100%;
         }
 
         #auth-container input, #join-game-section input {
             padding: 10px;
             font-size: 1em;
             border-radius: 5px;
-            border: 2px solid #fff;
+            border: 2px solid var(--text-color);
             background-color: #0a2d4d;
-            color: #fff;
+            color: var(--text-color);
             text-align: center;
             width: 80%;
             max-width: 300px;
         }
 
-        #auth-container button, #lobby button {
+        #auth-container button {
+            padding: 12px 24px;
+            font-size: 1em;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-main);
+            background-color: var(--primary-accent);
+            color: var(--primary-accent-text);
+            font-weight: bold;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        #lobby button {
             padding: 15px 30px;
             font-size: 1.2em;
             border-radius: 10px;
             border: none;
             cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-            background-color: #f7b733;
-            color: #333;
+            font-family: var(--font-main);
+            background-color: var(--primary-accent);
+            color: var(--primary-accent-text);
             font-weight: bold;
-            width: 80%;
-            max-width: 324px;
+            width: 100%;
+        }
+
+        #lobby #create-ai-game-btn {
+            background-color: var(--green);
         }
 
         #auth-container a {
-            color: #f7b733;
+            color: var(--primary-accent);
             cursor: pointer;
         }
         
@@ -113,24 +167,58 @@
             font-size: 1.2em;
             margin: 15px 0;
         }
-
+        
+        .lobby-main-content {
+            display: flex;
+            gap: 40px;
+            width: 100%;
+            max-width: 800px;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 20px;
+        }
+        .lobby-column {
+            flex: 1;
+            background: rgba(0,0,0,0.15);
+            padding: 25px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .lobby-column h3 {
+            margin-top: 0;
+            font-size: 1.5em;
+            border-bottom: 2px solid var(--primary-accent);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        
         #join-game-section {
             display: flex;
             flex-direction: column;
             gap: 10px;
             align-items: center;
+            width: 100%;
         }
+        #join-game-section input {
+            width: 100%;
+            box-sizing: border-box;
+            max-width: none;
+        }
+
 
         #game-code-display {
             background: rgba(0,0,0,0.2);
             padding: 20px;
             border-radius: 10px;
+            margin-top: 20px;
         }
 
         #game-code {
             font-size: 1.5em;
-            background: #fff;
-            color: #333;
+            background: var(--text-color);
+            color: var(--bg-color);
             padding: 5px 10px;
             border-radius: 5px;
             user-select: text;
@@ -257,7 +345,7 @@
             border-radius: 8px; border: 2px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             display: flex; justify-content: center; align-items: center;
             font-weight: bold; position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s;
             cursor: pointer;
         }
         
@@ -304,6 +392,12 @@
             position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 10px; font-size: 12px;
         }
+        #draw-stack-indicator {
+            position: absolute;
+            top: -25px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.8); padding: 4px 10px; border-radius: 15px; font-size: 16px;
+            font-weight: bold; border: 2px solid white;
+        }
 
         #game-message {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -324,6 +418,7 @@
             font-size: 20px; font-weight: bold; cursor: pointer;
             border: 3px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.4);
             transition: transform 0.2s;
+            z-index: 100;
         }
         #uno-button:active { transform: scale(0.9); }
 
@@ -345,10 +440,30 @@
 
         .action-button {
             padding: 10px 20px; border: none; border-radius: 10px;
-            background-color: #f7b733; color: var(--black); font-family: 'Poppins', sans-serif;
+            background-color: var(--primary-accent); color: var(--primary-accent-text); font-family: var(--font-main);
             font-weight: bold; font-size: 1em; cursor: pointer;
         }
         #end-game-buttons { display: flex; gap: 10px; }
+
+        .flying-card {
+            position: fixed;
+            transition: all 0.5s ease-in-out;
+            z-index: 5000;
+        }
+        
+        @media (max-width: 768px) {
+            .lobby-main-content {
+                flex-direction: column;
+                gap: 20px;
+                align-items: center;
+            }
+            .lobby-column {
+                width: 90%;
+            }
+            #lobby h2 {
+                font-size: 2em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -378,28 +493,43 @@
         <h2>UNO with Friends</h2>
         <p id="lobby-greeting">Welcome, <strong id="lobby-nickname-display"></strong>!</p>
         
-        <div id="create-game-setup">
-            <div class="form-field">
-                <label for="player-count">Number of Players:</label>
-                <select id="player-count">
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
-                </select>
+        <div class="lobby-main-content">
+            <div class="lobby-column" id="create-game-container">
+                <h3>Create a Game</h3>
+                <div class="form-field">
+                    <label for="theme-select">Theme:</label>
+                    <select id="theme-select">
+                        <option value="default">Default</option>
+                        <option value="theme-dark">Dark Mode</option>
+                        <option value="theme-retro">Retro</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="player-count">Number of Players:</label>
+                    <select id="player-count">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <button id="create-game-btn">Play with Friends</button>
+                <button id="create-ai-game-btn">Play with AI</button>
             </div>
-            <button id="create-game-btn">Create Game</button>
+            <div class="lobby-column" id="join-game-container">
+                <h3>Join a Game</h3>
+                <div id="join-game-section">
+                    <input type="text" id="game-id-input" placeholder="Enter Game Code">
+                    <button id="join-game-btn">Join Game</button>
+                </div>
+            </div>
         </div>
 
-        <div id="join-game-section">
-            <input type="text" id="game-id-input" placeholder="Enter Game Code">
-            <button id="join-game-btn">Join Game</button>
-        </div>
         <div id="game-code-display" style="display:none;">
             <p>Share this code with friends:</p>
             <strong id="game-code"></strong>
@@ -419,9 +549,14 @@
         <div id="opponent-area-right" class="player-area opponent-area-right"></div>
         
         <div class="game-table">
-            <div id="deck-pile" class="deck"><div class="card-back"><div class="logo">UNO</div></div><div id="deck-pile-count"></div></div>
+            <div id="deck-pile" class="deck">
+                <div class="card-back"><div class="logo">UNO</div></div>
+                <div id="deck-pile-count"></div>
+                <div id="draw-stack-indicator" style="display: none;"></div>
+            </div>
             <div id="discard-pile" class="deck"></div>
         </div>
+
         <div id="uno-button" style="display: none;">UNO!</div>
     </div>
     
@@ -451,10 +586,11 @@ service cloud.firestore {
     }
     match /uno_games/{gameId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.playerIds[0];
       allow update: if request.auth != null &&
-                    (resource.data.playerIds.hasAny([request.auth.uid]) ||
-                     request.resource.data.playerIds.size() == resource.data.playerIds.size() + 1);
+                    (request.auth.uid in resource.data.playerIds ||
+                     (request.resource.data.playerIds.size() == resource.data.playerIds.size() + 1 &&
+                      request.auth.uid in request.resource.data.playerIds));
     }
   }
 }</code><button id="copy-rules-btn">Copy Rules</button></pre>
@@ -465,15 +601,29 @@ service cloud.firestore {
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, runTransaction } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, runTransaction, addDoc, query, orderBy, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
         // --- Firebase, Game State, DOM Elements ---
         let db, auth, userId, gameId, gameUnsubscribe = null, userNickname = '';
+        let sounds = {};
+        let isAudioReady = false;
+        let isAITurnInProgress = false;
+
         const lobbyDiv = document.getElementById('lobby');
         const gameContainer = document.getElementById('game-container');
         const errorMessage = document.getElementById('error-message');
         const lobbyNicknameDisplay = document.getElementById('lobby-nickname-display');
 
+
+        // --- Sound Initialization ---
+        function setupAudio() {
+            if (isAudioReady) return;
+            sounds.play = new Tone.Synth().toDestination();
+            sounds.draw = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.1 } }).toDestination();
+            sounds.uno = new Tone.Synth({ oscillator: { type: 'triangle' } }).toDestination();
+            sounds.win = new Tone.Synth().toDestination();
+            isAudioReady = true;
+        }
 
         // --- Firebase Initialization ---
         async function initializeFirebase() {
@@ -548,17 +698,33 @@ service cloud.firestore {
         };
 
         // --- Lobby Functions ---
-        async function createGame() {
+        async function createGame(isAIGame = false) {
             if (!userId) return;
+            await Tone.start(); setupAudio();
             const nickname = userNickname || `Player${userId.substring(0,5)}`;
             const maxPlayers = parseInt(document.getElementById('player-count').value, 10);
 
-            const gameData = {
-                players: { [userId]: { hand: [], unoCalled: false, nickname: nickname } },
+            let gameData = {
+                players: { [userId]: { hand: [], unoCalled: false, nickname: nickname, isAI: false } },
                 playerIds: [userId], maxPlayers, deck: [], discardPile: [], currentPlayerIndex: 0,
                 gameDirection: 1, isGameOver: false, winner: null, chosenColor: null,
+                drawStack: { amount: 0, type: null },
                 status: 'waiting', log: [`Game for ${maxPlayers} players created.`]
             };
+            
+            if(isAIGame) {
+                const botNames = ["Sparky", "Nova", "Bolt", "Chip", "Gizmo", "Pixel", "Rocket", "Zappy", "Orbit"];
+                for(let i = 1; i < maxPlayers; i++) {
+                    const botId = `AI_${i}`;
+                    const botName = `Bot ${botNames[Math.floor(Math.random() * botNames.length)]}`;
+                    gameData.playerIds.push(botId);
+                    gameData.players[botId] = { hand: [], unoCalled: false, nickname: botName, isAI: true };
+                }
+                const updates = setupNewRound(gameData);
+                updates.players = gameData.players;
+                dealCards(updates, gameData.playerIds);
+                gameData = {...gameData, ...updates};
+            }
 
             try {
                 const gameCollection = collection(db, 'uno_games');
@@ -571,10 +737,13 @@ service cloud.firestore {
 
                 await setDoc(gameRef, gameData);
                 gameId = newGameId;
-                document.getElementById('game-code').textContent = gameId;
-                document.getElementById('game-code-display').style.display = 'block';
-                document.getElementById('create-game-setup').style.display = 'none';
-                document.getElementById('join-game-section').style.display = 'none';
+                
+                if(!isAIGame) {
+                    document.getElementById('game-code').textContent = gameId;
+                    document.getElementById('game-code-display').style.display = 'block';
+                    document.getElementById('create-game-container').style.display = 'none';
+                    document.getElementById('join-game-container').style.display = 'none';
+                }
                 listenToGame(gameId);
             } catch (error) {
                  handleFirebaseError(error);
@@ -584,6 +753,7 @@ service cloud.firestore {
         
         async function joinGame() {
             if (!userId) return;
+             await Tone.start(); setupAudio();
             const inputGameId = document.getElementById('game-id-input').value.trim();
             const nickname = userNickname || `Player${userId.substring(0,5)}`;
             const gameRef = doc(db, 'uno_games', inputGameId);
@@ -599,22 +769,20 @@ service cloud.firestore {
 
                     const newPlayerIds = [...gameData.playerIds, userId];
                     let updates = {
-                        [`players.${userId}`]: { hand: [], unoCalled: false, nickname: nickname },
+                        [`players.${userId}`]: { hand: [], unoCalled: false, nickname: nickname, isAI: false },
                         playerIds: newPlayerIds
                     };
 
                     if (newPlayerIds.length === gameData.maxPlayers) {
                         const newRoundUpdates = setupNewRound(gameData);
-                        
-                        // IMPORTANT FIX: Ensure the new player's data structure exists before dealing
-                        const allPlayersData = { ...gameData.players, ...updates.players };
+                        const allPlayersData = { ...gameData.players };
+                        allPlayersData[userId] = { hand: [], unoCalled: false, nickname: nickname, isAI: false };
                         newRoundUpdates.players = allPlayersData;
                         
                         dealCards(newRoundUpdates, newPlayerIds);
-
-                        // Combine all updates
+                        
+                        delete updates[`players.${userId}`];
                         updates = { ...updates, ...newRoundUpdates };
-                        delete updates[`players.${userId}`]; // No longer needed as it's inside newRoundUpdates.players
                     }
                     transaction.update(gameRef, updates);
                 });
@@ -623,26 +791,50 @@ service cloud.firestore {
             } catch (error) {
                 handleFirebaseError(error);
                 errorMessage.textContent = error.message;
-                showMessage(`Error: ${error.message}`);
+                showMessage(`Error: ${error.message}`, 0);
                 console.error("Join Game Error:", error); 
             }
         }
         
-        // --- Realtime Listener ---
+        // --- Realtime Listeners ---
         function listenToGame(id) {
             if (gameUnsubscribe) gameUnsubscribe();
             const gameRef = doc(db, 'uno_games', id);
             gameUnsubscribe = onSnapshot(gameRef, (doc) => {
                 const gameData = doc.data();
-                if (gameData && gameData.playerIds.includes(userId)) {
-                    if (gameData.status === 'waiting') {
-                        document.getElementById('lobby-status').textContent = `${gameData.playerIds.length} / ${gameData.maxPlayers} players have joined.`;
-                    } else if (gameData.status === 'playing' || gameData.status === 'finished') {
-                        lobbyDiv.style.display = 'none';
-                        gameContainer.style.display = 'block';
-                        renderGame(gameData);
+                if (gameData) {
+                    if (gameData.playerIds && gameData.playerIds.includes(userId)) {
+                        if (gameData.status === 'waiting') {
+                            document.getElementById('lobby-status').textContent = `${gameData.playerIds.length} / ${gameData.maxPlayers} players have joined.`;
+                        } else if (gameData.status === 'playing' || gameData.status === 'finished') {
+                            lobbyDiv.style.display = 'none';
+                            gameContainer.style.display = 'block';
+                            renderGame(gameData);
+
+                            const currentPlayerId = gameData.playerIds[gameData.currentPlayerIndex];
+                            const drawStack = gameData.drawStack || { amount: 0 };
+                            
+                            // Automatic draw for human player
+                            if (currentPlayerId === userId && !gameData.isGameOver && drawStack.amount > 0) {
+                                const me = gameData.players[userId];
+                                const canStack = me.hand.some(card => card.value === drawStack.type);
+                                if (!canStack) {
+                                    setTimeout(() => executeDrawAction(userId), 1500);
+                                }
+                            }
+                            
+                            // Trigger AI turn
+                            if (currentPlayerId.startsWith('AI_') && !gameData.isGameOver && !isAITurnInProgress) {
+                                isAITurnInProgress = true;
+                                setTimeout(() => playAITurn(currentPlayerId), 1500 + Math.random() * 1000);
+                            }
+                        }
                     }
                 }
+            }, (error) => {
+                handleFirebaseError(error);
+                console.error("Game snapshot listener error:", error);
+                showMessage(`Lost connection to game: ${error.message}`, 0)
             });
         }
         
@@ -656,7 +848,7 @@ service cloud.firestore {
             me.hand.sort((a,b) => (a.color > b.color) ? 1 : ((b.color > a.color) ? -1 : 0));
             me.hand.forEach(card => {
                 const cardDiv = renderCard(card);
-                cardDiv.addEventListener('click', () => playerPlayCard(card));
+                cardDiv.addEventListener('click', () => playerPlayCard(card, cardDiv));
                 playerHandDiv.appendChild(cardDiv);
             });
             document.getElementById('player-info-bottom').textContent = `You: ${me.nickname}`;
@@ -712,6 +904,15 @@ service cloud.firestore {
             }
             document.getElementById('deck-pile-count').textContent = gameData.deck.length;
 
+            const drawStackIndicator = document.getElementById('draw-stack-indicator');
+            const drawStack = gameData.drawStack || { amount: 0 };
+            if (drawStack.amount > 0) {
+                drawStackIndicator.textContent = `+${drawStack.amount}`;
+                drawStackIndicator.style.display = 'block';
+            } else {
+                drawStackIndicator.style.display = 'none';
+            }
+
             const currentPlayerId = gameData.playerIds[gameData.currentPlayerIndex];
             document.querySelectorAll('.turn-indicator').forEach(el => el.style.display = 'none');
             
@@ -728,29 +929,57 @@ service cloud.firestore {
             
             if (currentPlayerId === userId) updatePlayableCards(me.hand, gameData);
             updateUnoButton(me, currentPlayerId === userId);
-            if (gameData.isGameOver) endGame(gameData);
+            if (gameData.isGameOver) {
+                endGame(gameData);
+            }
         }
         
         function renderCard(card, chosenColor) {
              const cardDiv = document.createElement('div');
              cardDiv.className = 'card';
-             if(card.color === 'wild' && chosenColor) {
-                 cardDiv.dataset.color = `wild-${chosenColor}`;
-                 cardDiv.style.backgroundColor = `var(--${chosenColor})`;
-             } else { cardDiv.dataset.color = card.color; }
              const symbol = getSymbol(card.value);
-             cardDiv.innerHTML = card.color.startsWith('wild') ? `<div class="card-inner-symbol">${symbol}</div>` : `<span class="value top-left">${symbol}</span><div class="card-inner-symbol">${symbol}</div><span class="value bottom-right">${symbol}</span>`;
+             const isWild = card.color.startsWith('wild');
+
+             cardDiv.dataset.color = card.color;
+             
+             if (isWild && chosenColor) {
+                 cardDiv.style.backgroundColor = `var(--${chosenColor})`;
+             }
+
+             cardDiv.innerHTML = isWild ? `<div class="card-inner-symbol">${symbol}</div>` : `<span class="value top-left">${symbol}</span><div class="card-inner-symbol">${symbol}</div><span class="value bottom-right">${symbol}</span>`;
              return cardDiv;
         }
 
         // --- Game Actions ---
-        async function playerPlayCard(card) {
+        async function playerPlayCard(card, cardElement) {
             const gameRef = doc(db, 'uno_games', gameId);
             try {
+                const discardPile = document.getElementById('discard-pile');
+                const startRect = cardElement.getBoundingClientRect();
+                const endRect = discardPile.getBoundingClientRect();
+                
+                const flyingCard = cardElement.cloneNode(true);
+                flyingCard.classList.add('flying-card');
+                flyingCard.style.left = `${startRect.left}px`;
+                flyingCard.style.top = `${startRect.top}px`;
+                flyingCard.style.width = `${startRect.width}px`;
+                flyingCard.style.height = `${startRect.height}px`;
+                document.body.appendChild(flyingCard);
+                
+                requestAnimationFrame(() => {
+                    flyingCard.style.left = `${endRect.left + (endRect.width - startRect.width) / 2}px`;
+                    flyingCard.style.top = `${endRect.top + (endRect.height - startRect.height) / 2}px`;
+                    flyingCard.style.transform = 'scale(1)';
+                });
+
+                setTimeout(() => flyingCard.remove(), 500);
+
                 await runTransaction(db, async (transaction) => {
                     const gameDoc = await transaction.get(gameRef);
                     let gameData = gameDoc.data();
                     if (gameData.playerIds[gameData.currentPlayerIndex] !== userId || gameData.isGameOver || !isPlayable(card, gameData)) return;
+
+                    sounds.play.triggerAttackRelease("C4", "8n");
 
                     gameData.playerIds.forEach(pId => {
                         if(pId !== userId && gameData.players[pId].hand.length === 1 && !gameData.players[pId].unoCalled) {
@@ -763,56 +992,153 @@ service cloud.firestore {
                     if (cardIndex > -1) newHand.splice(cardIndex, 1);
                     
                     let updates = {
-                        [`players.${userId}.hand`]: newHand, [`players.${userId}.unoCalled`]: false,
-                        discardPile: [...gameData.discardPile, card], chosenColor: null
+                        [`players.${userId}.hand`]: newHand,
+                        [`players.${userId}.unoCalled`]: false,
+                        discardPile: [...gameData.discardPile, card],
+                        chosenColor: null
                     };
 
                     if (newHand.length === 0) {
-                        updates.isGameOver = true; updates.winner = userId;
-                        transaction.update(gameRef, updates); return;
+                        updates.isGameOver = true;
+                        updates.winner = userId;
+                        updates.drawStack = { amount: 0, type: null };
+                        transaction.update(gameRef, updates);
+                        return;
                     }
 
                     const effectResult = handleCardEffect(gameData, card);
                     updates = {...updates, ...effectResult.updates};
-                    if (card.color.startsWith('wild')) { updates.chosenColor = await getWildColor(); }
+                    
+                    if (card.color.startsWith('wild')) { 
+                        updates.chosenColor = await getWildColor(); 
+                    }
+                    
                     updates.currentPlayerIndex = effectResult.nextPlayerIndex;
                     transaction.update(gameRef, updates);
                 });
             } catch(e) { 
                 handleFirebaseError(e);
-                showMessage(`Error: ${e.message}`);
+                showMessage(`Error: ${e.message}`, 0);
                 console.error("Play Card Error", e);
             }
         }
         
-        async function playerDrawCard() {
+        async function executeDrawAction(targetPlayerId) {
              const gameRef = doc(db, 'uno_games', gameId);
              try {
                 await runTransaction(db, async (transaction) => {
-                    let gameData = (await transaction.get(gameRef)).data();
-                    if(gameData.playerIds[gameData.currentPlayerIndex] !== userId || gameData.isGameOver) return;
+                    const gameDoc = await transaction.get(gameRef);
+                    if (!gameDoc.exists()) throw new Error("Game not found");
+                    let gameData = gameDoc.data();
                     
-                    if (gameData.deck.length === 0) gameData = reshuffleDeck(gameData);
+                    if(gameData.playerIds[gameData.currentPlayerIndex] !== targetPlayerId || gameData.isGameOver) return;
                     
-                    const newDeck = [...gameData.deck];
-                    const newHand = [...gameData.players[userId].hand, newDeck.pop()];
-                    
+                    sounds.draw.triggerAttackRelease("A3", "8n");
+                    const drawStack = gameData.drawStack || { amount: 0, type: null };
                     const numPlayers = gameData.playerIds.length;
-                    const nextPlayerIndex = (gameData.currentPlayerIndex + gameData.gameDirection + numPlayers) % numPlayers;
+                    let updates = {};
 
-                    transaction.update(gameRef, {
-                        deck: newDeck, 
-                        [`players.${userId}.hand`]: newHand,
-                        currentPlayerIndex: nextPlayerIndex
-                    });
+                    if (drawStack.amount > 0) {
+                        const cardsToDraw = drawStack.amount;
+                        if (gameData.deck.length < cardsToDraw) gameData = reshuffleDeck(gameData);
+                        const newDeck = [...gameData.deck];
+                        const drawn = newDeck.splice(newDeck.length - cardsToDraw, cardsToDraw);
+                        
+                        updates.deck = newDeck;
+                        updates[`players.${targetPlayerId}.hand`] = [...gameData.players[targetPlayerId].hand, ...drawn];
+                        updates.drawStack = { amount: 0, type: null };
+                        updates.currentPlayerIndex = (gameData.currentPlayerIndex + gameData.gameDirection + numPlayers) % numPlayers;
+                    } else {
+                        if (gameData.deck.length === 0) gameData = reshuffleDeck(gameData);
+                        const newDeck = [...gameData.deck];
+                        const newHand = [...gameData.players[targetPlayerId].hand, newDeck.pop()];
+                        
+                        updates.deck = newDeck;
+                        updates[`players.${targetPlayerId}.hand`] = newHand;
+                        updates.currentPlayerIndex = (gameData.currentPlayerIndex + gameData.gameDirection + numPlayers) % numPlayers;
+                    }
+                    transaction.update(gameRef, updates);
                 });
              } catch(e) {
                 handleFirebaseError(e);
-                showMessage(`Error: ${e.message}`);
-                console.error("Draw Card Error", e);
+                showMessage(`Error: ${e.message}`, 0);
+                console.error("Draw Action Error", e);
              }
         }
         
+        // --- AI Logic ---
+        async function playAITurn(aiId) {
+            const gameRef = doc(db, 'uno_games', gameId);
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const gameDoc = await transaction.get(gameRef);
+                    if (!gameDoc.exists()) throw new Error("Game not found during AI turn");
+                    let gameData = gameDoc.data();
+                    
+                    if (gameData.playerIds[gameData.currentPlayerIndex] !== aiId || gameData.isGameOver) {
+                        isAITurnInProgress = false; return;
+                    }
+
+                    const aiHand = gameData.players[aiId].hand;
+                    const playableCards = aiHand.filter(card => isPlayable(card, gameData));
+                    let updates = {};
+
+                    if (playableCards.length > 0) {
+                        const cardToPlay = playableCards[0];
+                        sounds.play.triggerAttackRelease("C4", "8n");
+                        
+                        const newHand = aiHand.filter(c => !(c.color === cardToPlay.color && c.value === cardToPlay.value));
+                        updates[`players.${aiId}.hand`] = newHand;
+                        updates[`players.${aiId}.unoCalled`] = newHand.length === 1;
+                        updates.discardPile = [...gameData.discardPile, cardToPlay];
+                        updates.chosenColor = null;
+
+                        if (newHand.length === 0) {
+                            updates.isGameOver = true; updates.winner = aiId;
+                        } else {
+                            const effectResult = handleCardEffect(gameData, cardToPlay);
+                            updates = {...updates, ...effectResult.updates};
+                            if (cardToPlay.color.startsWith('wild')) {
+                                const colorsInHand = newHand.map(c => c.color).filter(c => !c.startsWith('wild'));
+                                const colorCounts = colorsInHand.reduce((acc, color) => ({...acc, [color]: (acc[color] || 0) + 1}), {});
+                                const bestColor = Object.keys(colorCounts).sort((a,b) => colorCounts[b] - colorCounts[a])[0] || ['red', 'blue', 'green', 'yellow'][Math.floor(Math.random() * 4)];
+                                updates.chosenColor = bestColor;
+                            }
+                            updates.currentPlayerIndex = effectResult.nextPlayerIndex;
+                        }
+                    } else { // AI must draw
+                        sounds.draw.triggerAttackRelease("A3", "8n");
+                        const drawStack = gameData.drawStack || { amount: 0 };
+                        const numPlayers = gameData.playerIds.length;
+
+                        if (drawStack.amount > 0) {
+                            const cardsToDraw = drawStack.amount;
+                            if (gameData.deck.length < cardsToDraw) gameData = reshuffleDeck(gameData);
+                            const newDeck = [...gameData.deck];
+                            const drawn = newDeck.splice(newDeck.length - cardsToDraw, cardsToDraw);
+                            
+                            updates.deck = newDeck;
+                            updates[`players.${aiId}.hand`] = [...aiHand, ...drawn];
+                            updates.drawStack = { amount: 0, type: null };
+                        } else {
+                            if (gameData.deck.length === 0) gameData = reshuffleDeck(gameData);
+                            const newDeck = [...gameData.deck];
+                            updates[`players.${aiId}.hand`] = [...aiHand, newDeck.pop()];
+                            updates.deck = newDeck;
+                        }
+                        updates.currentPlayerIndex = (gameData.currentPlayerIndex + gameData.gameDirection + numPlayers) % numPlayers;
+                    }
+                    transaction.update(gameRef, updates);
+                });
+            } catch(e) {
+                console.error("AI Turn Error:", e);
+                showMessage(`AI Error: ${e.message}`, 0);
+            } finally {
+                isAITurnInProgress = false;
+            }
+        }
+
+
         // --- Helper & Game Flow Functions ---
         function handleFirebaseError(error) {
             if (error.code === 'permission-denied' || error.message.includes('permission-denied') || error.message.includes('insufficient permissions')) {
@@ -828,7 +1154,7 @@ service cloud.firestore {
             const newDeck = createDeck(); shuffleDeck(newDeck);
             let firstCard;
             do { firstCard = newDeck.pop(); } while (firstCard.color.startsWith('wild'));
-            return { status: 'playing', deck: newDeck, discardPile: [firstCard], currentPlayerIndex: 0, gameDirection: 1, isGameOver: false, winner: null, chosenColor: null };
+            return { status: 'playing', deck: newDeck, discardPile: [firstCard], currentPlayerIndex: 0, gameDirection: 1, isGameOver: false, winner: null, chosenColor: null, drawStack: { amount: 0, type: null } };
         }
         
         function dealCards(updates, playerIds) {
@@ -846,35 +1172,31 @@ service cloud.firestore {
             let nextPlayerIndex = gameData.currentPlayerIndex;
             const numPlayers = gameData.playerIds.length;
             let direction = gameData.gameDirection;
+            const drawStack = gameData.drawStack || { amount: 0, type: null };
 
-            if (card.value === 'reverse') {
-                direction *= -1;
-                if (numPlayers > 2) {
-                    updates.gameDirection = direction;
-                } else {
-                    // In a 2-player game, reverse acts like a skip
-                    nextPlayerIndex = (nextPlayerIndex + direction + numPlayers) % numPlayers;
-                }
-            }
-
-            let skipCount = 0;
-            if (card.value === 'skip') {
-                skipCount = 1;
-            }
-            
             if (card.value === 'draw2' || card.value === 'wild4') {
-                skipCount = 1;
-                const affectedPlayerIndex = (nextPlayerIndex + direction + numPlayers) % numPlayers;
-                const affectedPlayerId = gameData.playerIds[affectedPlayerIndex];
-                const cardsToDraw = card.value === 'draw2' ? 2 : 4;
-                if (gameData.deck.length < cardsToDraw) gameData = reshuffleDeck(gameData);
-                const newDeck = [...gameData.deck];
-                const drawn = newDeck.splice(newDeck.length - cardsToDraw, cardsToDraw);
-                updates[`players.${affectedPlayerId}.hand`] = [...gameData.players[affectedPlayerId].hand, ...drawn];
-                updates.deck = newDeck;
+                updates.drawStack = {
+                    amount: drawStack.amount + (card.value === 'draw2' ? 2 : 4),
+                    type: card.value
+                };
+                nextPlayerIndex = (nextPlayerIndex + direction + numPlayers) % numPlayers;
+            } else {
+                if (card.value === 'reverse') {
+                    direction *= -1;
+                    if (numPlayers > 2) {
+                        updates.gameDirection = direction;
+                    } else {
+                        nextPlayerIndex = (nextPlayerIndex + direction + numPlayers) % numPlayers; // Skip
+                    }
+                }
+
+                let skipCount = 0;
+                if (card.value === 'skip') {
+                    skipCount = 1;
+                }
+                nextPlayerIndex = (nextPlayerIndex + direction * (1 + skipCount) + numPlayers) % numPlayers;
             }
-            
-            nextPlayerIndex = (nextPlayerIndex + direction * (1 + skipCount) + numPlayers) % numPlayers;
+
             return { updates, nextPlayerIndex };
         }
 
@@ -906,6 +1228,11 @@ service cloud.firestore {
          function isPlayable(card, gameData) {
             const topCard = gameData.discardPile[gameData.discardPile.length - 1];
             const chosenColor = gameData.chosenColor;
+            const drawStack = gameData.drawStack || { amount: 0, type: null };
+
+            if (drawStack.amount > 0) {
+                return card.value === drawStack.type;
+            }
             if (card.color.startsWith('wild')) return true;
             if (chosenColor) return card.color === chosenColor;
             return card.color === topCard.color || card.value === topCard.value;
@@ -942,19 +1269,18 @@ service cloud.firestore {
          function showMessage(text, duration = 1500) {
             const gameMessage = document.getElementById('game-message');
             const messageText = document.getElementById('message-text');
-            const closeBtn = document.createElement('button');
-            closeBtn.textContent = 'OK';
-            closeBtn.className = 'action-button';
-            closeBtn.onclick = () => gameMessage.style.display = 'none';
-
-            messageText.innerHTML = '';
-            messageText.appendChild(document.createTextNode(text));
             
-            if (duration === 0) { // Keep open until closed
-                 // check if close button already exists
-                if (!messageText.nextElementSibling || messageText.nextElementSibling.tagName !== 'BUTTON') {
-                    messageText.after(closeBtn);
-                }
+            const existingBtn = gameMessage.querySelector('.ok-button');
+            if(existingBtn) existingBtn.remove();
+            
+            messageText.textContent = text;
+            
+            if (duration === 0) {
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = 'OK';
+                closeBtn.className = 'action-button ok-button';
+                closeBtn.onclick = () => gameMessage.style.display = 'none';
+                gameMessage.appendChild(closeBtn);
             }
 
             gameMessage.style.display = 'flex';
@@ -969,21 +1295,33 @@ service cloud.firestore {
          function endGame(gameData) {
             const winnerId = gameData.winner;
             const message = winnerId === userId ? '🎉 You Win! 🎉' : `😢 ${gameData.players[winnerId].nickname} Wins 😢`;
-            showMessage(message, 0);
+            
             const gameMessage = document.getElementById('game-message');
+            const messageText = document.getElementById('message-text');
             const endGameButtons = document.getElementById('end-game-buttons');
+            const playAgainButton = document.getElementById('play-again-button');
+            
+            const existingOkBtn = gameMessage.querySelector('.ok-button');
+            if(existingOkBtn) existingOkBtn.remove();
+
+            messageText.textContent = message;
             gameMessage.appendChild(endGameButtons);
             
             endGameButtons.style.display = 'flex';
-            const playAgainButton = document.getElementById('play-again-button');
+
             const amIHost = gameData.playerIds[0] === userId;
             if (amIHost) {
-                playAgainButton.textContent = 'Play Again';
-                playAgainButton.disabled = false;
+                if(playAgainButton) playAgainButton.textContent = 'Play Again';
+                if(playAgainButton) playAgainButton.disabled = false;
             } else {
-                playAgainButton.textContent = 'Waiting for Host';
-                playAgainButton.disabled = true;
+                if(playAgainButton) playAgainButton.textContent = 'Waiting for Host';
+                if(playAgainButton) playAgainButton.disabled = true;
             }
+
+            gameMessage.style.display = 'flex';
+            document.getElementById('color-picker').style.display = 'none';
+
+            sounds.win.triggerAttackRelease("C5", "0.5s");
          }
 
         async function restartGame() {
@@ -1000,24 +1338,43 @@ service cloud.firestore {
                 });
             } catch (e) { 
                 handleFirebaseError(e);
-                showMessage(`Error: ${e.message}`);
+                showMessage(`Error: ${e.message}`, 0);
                 console.error("Restart failed:", e);
             }
         }
+        
+        // --- Theme Switcher ---
+        const themeSelect = document.getElementById('theme-select');
+        themeSelect.addEventListener('change', (e) => {
+            document.body.className = e.target.value;
+            localStorage.setItem('uno-theme', e.target.value);
+        });
+        
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('uno-theme') || 'default';
+            document.body.className = savedTheme;
+            themeSelect.value = savedTheme;
+        }
 
         // --- Event Listeners ---
-        window.onload = initializeFirebase;
+        window.onload = () => {
+            initializeFirebase();
+            loadTheme();
+        };
         document.getElementById('signup-btn').addEventListener('click', handleSignUp);
         document.getElementById('signin-btn').addEventListener('click', handleSignIn);
         document.getElementById('signout-btn').addEventListener('click', handleSignOut);
         document.getElementById('show-signin-link').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('signup-container').style.display = 'none'; document.getElementById('signin-container').style.display = 'block'; errorMessage.textContent = ''; });
         document.getElementById('show-signup-link').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('signin-container').style.display = 'none'; document.getElementById('signup-container').style.display = 'block'; errorMessage.textContent = ''; });
-        document.getElementById('create-game-btn').addEventListener('click', createGame);
+        document.getElementById('create-game-btn').addEventListener('click', () => createGame(false));
+        document.getElementById('create-ai-game-btn').addEventListener('click', () => createGame(true));
         document.getElementById('join-game-btn').addEventListener('click', joinGame);
-        document.getElementById('deck-pile').addEventListener('click', playerDrawCard);
+        document.getElementById('deck-pile').addEventListener('click', () => executeDrawAction(userId));
         document.getElementById('lobby-button').addEventListener('click', () => window.location.reload());
         document.getElementById('play-again-button').addEventListener('click', restartGame);
+        
         document.getElementById('uno-button').addEventListener('click', () => {
+            sounds.uno.triggerAttackRelease("G4", "8n");
             const gameRef = doc(db, 'uno_games', gameId);
             updateDoc(gameRef, {[`players.${userId}.unoCalled`]: true});
             showMessage("UNO!", 1000);
