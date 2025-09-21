@@ -58,7 +58,6 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden;
             font-family: var(--font-main);
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -70,12 +69,22 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             height: 100vh;
-            padding: 20px;
             box-sizing: border-box;
             text-align: center;
         }
+
+        #auth-container {
+             justify-content: center;
+             padding: 20px;
+        }
+        
+        #lobby {
+            justify-content: flex-start;
+            padding: 80px 20px 40px 20px;
+            overflow-y: auto;
+        }
+
 
         #signup-container, #signin-container {
             display: flex;
@@ -88,6 +97,7 @@
         #auth-container h2, #lobby h2 {
             font-size: 2.5em;
             margin-bottom: 20px;
+            margin-top: 0;
         }
         
         .form-field {
@@ -301,6 +311,7 @@
             position: relative;
             width: 100vw;
             height: 100vh;
+            overflow: hidden;
         }
 
         /* Player areas */
@@ -943,7 +954,7 @@ service cloud.firestore {
              cardDiv.dataset.color = card.color;
              
              if (isWild && chosenColor) {
-                 cardDiv.style.backgroundColor = `var(--${chosenColor})`;
+                 cardDiv.style.background = `var(--${chosenColor})`;
              }
 
              cardDiv.innerHTML = isWild ? `<div class="card-inner-symbol">${symbol}</div>` : `<span class="value top-left">${symbol}</span><div class="card-inner-symbol">${symbol}</div><span class="value bottom-right">${symbol}</span>`;
